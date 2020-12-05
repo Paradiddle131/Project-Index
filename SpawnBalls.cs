@@ -27,11 +27,10 @@ public class SpawnBalls : MonoBehaviour
         int numIterated = 0;
         do
         {
-            System.Threading.Thread.Sleep(100);
             Vector2 randomPoint = GetRandomPoint();
-            if (Physics2D.OverlapCircle(randomPoint, radius))
+            if (toms.Count > 0 || Physics2D.OverlapCircle(randomPoint, radius))
             {
-                Debug.Log("COLLIDED ON: " + randomPoint);
+                //Debug.Log("COLLIDED ON: " + randomPoint);
                 numIterated++;
                 if (numIterated == amount * 2)
                 {
@@ -43,14 +42,26 @@ public class SpawnBalls : MonoBehaviour
             tom = Instantiate(go);
             tom.transform.position = randomPoint;
             toms.Add(System.DateTime.Now, tom);
+            System.Threading.Thread.Sleep(100);
             countSpawned++;
             //TurnTomToGreen(tom);
-            TurnTomToGreen(go);
         } while (countSpawned != amount);
     }
     void Start()
     {
+        initializeTomAsRed();
         //SpawnObject(Tom, numberOfToms);
+    }
+
+    void OnMouseDown()
+    {
+        //TurnTomToGreen(this.gameObject);
+    }
+
+    void initializeTomAsRed()
+    {
+        SpriteRenderer renderer = Tom.GetComponent<SpriteRenderer>();
+        renderer.color = new Color(1f, 0f, 0f, 1f);
     }
 
     void TurnTomToGreen(GameObject go)
@@ -62,5 +73,24 @@ public class SpawnBalls : MonoBehaviour
     void Update()
     {
         SpawnObject(Tom, 1);
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(ray.origin, ray.direction);
+            foreach (RaycastHit2D hit in hits)
+            {
+                Debug.Log(hit);
+                if (hit.collider.gameObject.tag == "Tom")
+                {
+                    Debug.Log(hit.collider.gameObject.name);
+                    //Destroy(hit.collider.gameObject);
+                    TurnTomToGreen(hit.collider.gameObject);
+                }
+                else
+                {
+                    Debug.Log("else");
+                }
+            }
+        }
     }
 }
