@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.UI;
 
 public class SpawnBalls : MonoBehaviour
 {
@@ -12,7 +13,10 @@ public class SpawnBalls : MonoBehaviour
     [SerializeField] public int numberOfToms;
     [SerializeField] public float radius;
 
+    public int score = 0;
+
     Dictionary<System.DateTime, GameObject> toms = new Dictionary<System.DateTime, GameObject>();
+    System.DateTime turnedGreen;
 
     Vector2 GetRandomPoint()
     {
@@ -48,8 +52,14 @@ public class SpawnBalls : MonoBehaviour
             //TurnTomToGreen(tom);
         } while (countSpawned != amount);
     }
+
     void Start()
     {
+        GameObject txtScoreObject = new GameObject("txtScore");
+        txtScoreObject.transform.SetParent(this.transform);
+
+        Text txtScore = txtScoreObject.AddComponent<Text>();
+        txtScore.text = "Ta-dah!";
         initializeTomAsRed();
         //SpawnObject(Tom, numberOfToms);
     }
@@ -73,14 +83,16 @@ public class SpawnBalls : MonoBehaviour
 
     void Update()
     {
+        if (!Tom)
+        {
+            Tom = new GameObject();
+        }
         SpawnObject(Tom, 1);
-        double timeToDestroy = Random.Range(0.75f, 3.0f);
-        Debug.Log(toms.ElementAt(0));
-        Debug.Log(toms.ElementAt(0).Key);
-        Debug.Log(toms.ElementAt(0).Value);
+        double timeToDestroy = Random.Range(0.75f, 6.0f);
         if (System.DateTime.Now > toms.ElementAt(0).Key.AddSeconds(timeToDestroy))
         {
             TurnTomToGreen(toms.ElementAt(0).Value);
+            turnedGreen = System.DateTime.Now;
         }
         if (Input.GetMouseButtonDown(0))
         {
@@ -88,11 +100,13 @@ public class SpawnBalls : MonoBehaviour
             RaycastHit2D[] hits = Physics2D.RaycastAll(ray.origin, ray.direction);
             foreach (RaycastHit2D hit in hits)
             {
-                Debug.Log(hit);
-                if (hit.collider.gameObject.tag == "Tom")
+                if (hit.collider.gameObject.tag == "Tom" && hit.collider.gameObject.GetComponent<SpriteRenderer>().color == new Color(0f, 1f, 0f, 1f))
                 {
-                    Debug.Log(hit.collider.gameObject.name);
                     Destroy(hit.collider.gameObject);
+                    toms.Remove(toms.ElementAt(0).Key);
+                    //Debug.Log(System.DateTime.Now - turnedGreen);
+                    Debug.Log((System.DateTime.Now - turnedGreen).TotalMilliseconds);
+                    //score += System.DateTime.Now - turnedGreen;
                     //TurnTomToGreen(hit.collider.gameObject);
                 }
                 else
