@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
-using UnityEngine.UI;
+using UnityEngine;
 
 public class SpawnBalls : MonoBehaviour
 {
@@ -13,10 +12,10 @@ public class SpawnBalls : MonoBehaviour
     [SerializeField] public int numberOfToms;
     [SerializeField] public float radius;
 
-    public int score = 0;
+    public double score = 0;
 
     Dictionary<System.DateTime, GameObject> toms = new Dictionary<System.DateTime, GameObject>();
-    System.DateTime turnedGreen;
+    System.DateTime timeTurnedGreen;
 
     Vector2 GetRandomPoint()
     {
@@ -35,7 +34,6 @@ public class SpawnBalls : MonoBehaviour
             Vector2 randomPoint = GetRandomPoint();
             if (toms.Count > 0 || Physics2D.OverlapCircle(randomPoint, radius))
             {
-                //Debug.Log("COLLIDED ON: " + randomPoint);
                 numIterated++;
                 if (numIterated == amount * 2)
                 {
@@ -49,24 +47,13 @@ public class SpawnBalls : MonoBehaviour
             toms.Add(System.DateTime.Now, tom);
             System.Threading.Thread.Sleep(100);
             countSpawned++;
-            //TurnTomToGreen(tom);
         } while (countSpawned != amount);
     }
 
     void Start()
     {
-        GameObject txtScoreObject = new GameObject("txtScore");
-        txtScoreObject.transform.SetParent(this.transform);
-
-        Text txtScore = txtScoreObject.AddComponent<Text>();
-        txtScore.text = "Ta-dah!";
         initializeTomAsRed();
         //SpawnObject(Tom, numberOfToms);
-    }
-
-    void OnMouseDown()
-    {
-        //TurnTomToGreen(this.gameObject);
     }
 
     void initializeTomAsRed()
@@ -77,22 +64,23 @@ public class SpawnBalls : MonoBehaviour
 
     void TurnTomToGreen(GameObject go)
     {
-        SpriteRenderer renderer = go.GetComponent<SpriteRenderer>();
-        renderer.color = new Color(0f, 1f, 0f, 1f);
+        Color colorGreen = new Color(0f, 1f, 0f, 1f);
+        if (go.GetComponent<SpriteRenderer>().color != colorGreen)
+        {
+            SpriteRenderer renderer = go.GetComponent<SpriteRenderer>();
+            renderer.color = colorGreen;
+            timeTurnedGreen = System.DateTime.Now;
+        }
     }
 
     void Update()
     {
-        if (!Tom)
-        {
-            Tom = new GameObject();
-        }
+        if (!Tom) Tom = new GameObject();
         SpawnObject(Tom, 1);
         double timeToDestroy = Random.Range(0.75f, 6.0f);
         if (System.DateTime.Now > toms.ElementAt(0).Key.AddSeconds(timeToDestroy))
         {
             TurnTomToGreen(toms.ElementAt(0).Value);
-            turnedGreen = System.DateTime.Now;
         }
         if (Input.GetMouseButtonDown(0))
         {
@@ -100,18 +88,13 @@ public class SpawnBalls : MonoBehaviour
             RaycastHit2D[] hits = Physics2D.RaycastAll(ray.origin, ray.direction);
             foreach (RaycastHit2D hit in hits)
             {
-                if (hit.collider.gameObject.tag == "Tom" && hit.collider.gameObject.GetComponent<SpriteRenderer>().color == new Color(0f, 1f, 0f, 1f))
+                GameObject clickedTom = hit.collider.gameObject;
+                if (clickedTom.tag == "Tom" && clickedTom.GetComponent<SpriteRenderer>().color == new Color(0f, 1f, 0f, 1f))
                 {
-                    Destroy(hit.collider.gameObject);
+                    Destroy(clickedTom);
                     toms.Remove(toms.ElementAt(0).Key);
-                    //Debug.Log(System.DateTime.Now - turnedGreen);
-                    Debug.Log((System.DateTime.Now - turnedGreen).TotalMilliseconds);
-                    //score += System.DateTime.Now - turnedGreen;
-                    //TurnTomToGreen(hit.collider.gameObject);
-                }
-                else
-                {
-                    Debug.Log("else");
+                    score += 1000 / (System.DateTime.Now - timeTurnedGreen).TotalMilliseconds;
+                    Debug.Log("SCORE: " + score.ToString());
                 }
             }
         }
