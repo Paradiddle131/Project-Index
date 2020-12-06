@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class SpawnBalls : MonoBehaviour
 {
@@ -73,6 +74,14 @@ public class SpawnBalls : MonoBehaviour
     void Update()
     {
         SpawnObject(Tom, 1);
+        double timeToDestroy = Random.Range(0.75f, 3.0f);
+        Debug.Log(toms.ElementAt(0));
+        Debug.Log(toms.ElementAt(0).Key);
+        Debug.Log(toms.ElementAt(0).Value);
+        if (System.DateTime.Now > toms.ElementAt(0).Key.AddSeconds(timeToDestroy))
+        {
+            TurnTomToGreen(toms.ElementAt(0).Value);
+        }
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -83,8 +92,8 @@ public class SpawnBalls : MonoBehaviour
                 if (hit.collider.gameObject.tag == "Tom")
                 {
                     Debug.Log(hit.collider.gameObject.name);
-                    //Destroy(hit.collider.gameObject);
-                    TurnTomToGreen(hit.collider.gameObject);
+                    Destroy(hit.collider.gameObject);
+                    //TurnTomToGreen(hit.collider.gameObject);
                 }
                 else
                 {
